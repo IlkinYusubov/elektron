@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giriş — E-Jurnal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#1a237e;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.wrap{background:#fff;border-radius:16px;padding:38px 34px;width:400px;box-shadow:0 10px 40px #0004}
+.logo{text-align:center;margin-bottom:22px}
+.logo div{font-size:42px;margin-bottom:8px}
+.logo h1{font-size:22px;font-weight:700;color:#1a237e}
+.logo p{font-size:12px;color:#aaa;margin-top:3px}
+.rol-bar{display:flex;border-radius:9px;overflow:hidden;border:1.5px solid #e3e6f7;margin-bottom:18px}
+.rb{flex:1;padding:9px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;background:#f0f2ff;color:#888;transition:.14s;text-align:center}
+.rb.akt{background:#1a237e;color:#fff}
+.fld{margin-bottom:14px}
+label{display:block;font-size:11.5px;font-weight:700;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+input{width:100%;padding:10px 13px;border:1.5px solid #dde2f0;border-radius:8px;font-size:15px;outline:none;transition:.14s;color:#1a1a2e}
+input:focus{border-color:#3949ab;box-shadow:0 0 0 3px #3949ab15}
+.btn{width:100%;padding:11px;background:#1a237e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:.14s}
+.btn:hover{background:#283593}
+.xeta{background:#ffebee;color:#c62828;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:12px;border-left:4px solid #e53935}
+.qeyd{text-align:center;margin-top:14px;font-size:11.5px;color:#bbb;background:#f8f9ff;border-radius:7px;padding:8px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div>📚</div>
+    <h1>Elektron Jurnal</h1>
+    <p>Kollec idarəetmə sistemi</p>
+  </div>
+  <div class="rol-bar">
+    <button class="rb akt" id="rb-m" onclick="rolSec('muellim')">👨‍🏫 Müəllim / Admin</button>
+    <button class="rb" id="rb-t" onclick="rolSec('telebe')">🎓 Tələbə</button>
+  </div>
+  {% if xeta %}<div class="xeta">{{ xeta }}</div>{% endif %}
+  <form method="POST">
+    <input type="hidden" name="rol" id="rolInp" value="muellim">
+    <div class="fld"><label id="adLbl">İstifadəçi adı</label>
+      <input type="text" name="ad" placeholder="Adınız" required autofocus></div>
+    <div class="fld"><label>Şifrə</label>
+      <input type="password" name="sifre" placeholder="Şifrəniz" required></div>
+    <button class="btn" type="submit">Daxil ol →</button>
+  </form>
+  <div class="qeyd">
+    <b>Admin:</b> admin / admin123<br>
+    <b>Müəllim:</b> Muellim1 / 1234<br>
+    <b>Tələbə:</b> eliyev.murad / 1234
+  </div>
+</div>
+<script>
+function rolSec(r){
+  document.getElementById('rolInp').value=r;
+  document.getElementById('rb-m').classList.toggle('akt',r==='muellim');
+  document.getElementById('rb-t').classList.toggle('akt',r==='telebe');
+  document.getElementById('adLbl').textContent=r==='telebe'?'İstifadəçi adı (eliyev.murad)':'İstifadəçi adı';
+}
+if(new URLSearchParams(location.search).get('rol')==='telebe') rolSec('telebe');
+</script>
+</body>
+</html>

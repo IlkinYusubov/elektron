@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Hesabat{% endblock %}
+{% block content %}
+<div class="kart">
+  <div class="kb">📈 Hesabat</div>
+  <form method="GET" class="frow">
+    <div class="fsah"><label class="lbl">Fənn</label>
+      <select name="ders_id" onchange="this.form.submit()">
+        <option value="">— Fənn seçin —</option>
+        {% for d in dersler %}<option value="{{ d.id }}" {% if d.id==ders_id %}selected{% endif %}>{{ d.ad }}</option>{% endfor %}
+      </select></div>
+    <div class="fsah"><label class="lbl">Qrup</label>
+      <select name="qrup_id" onchange="this.form.submit()">
+        <option value="">— Qrup seçin —</option>
+        {% for q in qruplar %}<option value="{{ q.id }}" {% if q.id==qrup_id %}selected{% endif %}>{{ q.ad }}</option>{% endfor %}
+      </select></div>
+  </form>
+  {% if rows %}
+  {% set n=rows|length %}{% set cf=rows|sum(attribute='fais') %}
+  {% set orl=rows|selectattr('orta')|list %}{% set co=orl|sum(attribute='orta') %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px">
+    <div style="background:#eef0fb;border-radius:8px;padding:12px 14px"><div style="font-size:11px;color:#5c6bc0;font-weight:700;margin-bottom:2px">Tələbə</div><div style="font-size:24px;font-weight:700;color:#1a237e">{{ n }}</div></div>
+    <div style="background:#e8f5e9;border-radius:8px;padding:12px 14px"><div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:2px">Orta dav.</div><div style="font-size:24px;font-weight:700;color:#2e7d32">{{ (cf/n)|round|int }}%</div></div>
+    {% if orl %}<div style="background:#fff8e1;border-radius:8px;padding:12px 14px"><div style="font-size:11px;color:#f57c00;font-weight:700;margin-bottom:2px">Orta qiymət</div><div style="font-size:24px;font-weight:700;color:#e65100">{{ (co/orl|length)|round|int }}</div></div>{% endif %}
+    <div style="background:#ffebee;border-radius:8px;padding:12px 14px"><div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:2px">Diqqət</div><div style="font-size:24px;font-weight:700;color:#b71c1c">{{ rows|selectattr('status','eq','diqqet')|list|length }}</div></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Tələbə</th><th style="text-align:center">İştirak</th><th style="text-align:center">Qayıb</th><th style="text-align:center">Dav.%</th><th style="text-align:center">Orta bal</th><th style="text-align:center">Status</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ loop.index }}</td><td><b>{{ r.telebe }}</b></td>
+      <td style="text-align:center;color:#2e7d32;font-weight:700">{{ r.istirak }}</td>
+      <td style="text-align:center;color:#c62828;font-weight:700">{{ r.qayib }}</td>
+      <td style="text-align:center"><span style="font-weight:700;color:{% if r.fais>=70 %}#2e7d32{% else %}#c62828{% endif %}">{{ r.fais }}%</span></td>
+      <td style="text-align:center">{% if r.orta is not none %}<span style="font-weight:700;color:{% if r.orta>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ r.orta }}</span>{% else %}—{% endif %}</td>
+      <td style="text-align:center">{% if r.status=='normal' %}<span class="bdg bdg-y">✓ Normal</span>{% else %}<span class="bdg bdg-r">⚠ Diqqət</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <div style="margin-top:10px;text-align:right"><button class="btn btn-s" onclick="window.print()">🖨️ Çap et</button></div>
+  {% elif ders_id and qrup_id %}<p style="color:#aaa;font-size:14px">Məlumat yoxdur.</p>
+  {% endif %}
+</div>
+{% endblock %}

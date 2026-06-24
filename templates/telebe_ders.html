@@ -1,0 +1,50 @@
+{% extends 'telebe_base.html' %}
+{% block title %}{{ ders.ad }}{% endblock %}
+{% block content %}
+<div style="margin-bottom:12px"><a href="/kabinet" style="color:#3949ab;font-size:13px;font-weight:600">← Kabinetə qayıt</a></div>
+<div class="kart" style="background:linear-gradient(135deg,#283593,#3949ab);color:#fff;padding:20px 22px;margin-bottom:14px">
+  <div style="font-size:18px;font-weight:700;margin-bottom:4px">{{ ders.ad }}</div>
+  <div style="opacity:.8;font-size:13px">👨‍🏫 {{ muellim.ad_soyad or muellim.ad if muellim else '—' }} · 🏫 {{ qrup.ad if qrup else '—' }}</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px">
+  <div class="kart" style="padding:14px;margin:0;text-align:center"><div style="font-size:11px;color:#5c6bc0;font-weight:700">Ümumi dərs</div><div style="font-size:26px;font-weight:700;color:#1a237e">{{ gun_say }}</div></div>
+  <div class="kart" style="padding:14px;margin:0;text-align:center"><div style="font-size:11px;color:#388e3c;font-weight:700">İştirak</div><div style="font-size:26px;font-weight:700;color:#2e7d32">{{ istirak_say }}</div></div>
+  <div class="kart" style="padding:14px;margin:0;text-align:center"><div style="font-size:11px;color:#c62828;font-weight:700">Qayıb</div><div style="font-size:26px;font-weight:700;color:#c62828">{{ gun_say-istirak_say }}</div></div>
+  <div class="kart" style="padding:14px;margin:0;text-align:center">
+    <div style="font-size:11px;font-weight:700;color:{% if fais>=70 %}#388e3c{% else %}#c62828{% endif %}">Davamiyyət</div>
+    <div style="font-size:26px;font-weight:700;color:{% if fais>=70 %}#2e7d32{% else %}#c62828{% endif %}">{{ fais }}%</div>
+    <div class="prog-wrap"><div class="prog-bar" style="width:{{ fais }}%;background:{% if fais>=70 %}#2e7d32{% else %}#c62828{% endif %}"></div></div>
+  </div>
+  {% if orta is not none %}<div class="kart" style="padding:14px;margin:0;text-align:center"><div style="font-size:11px;color:#f57c00;font-weight:700">Orta qiymət</div><div style="font-size:26px;font-weight:700;color:{% if orta>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ orta }}</div></div>{% endif %}
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div class="kart" style="margin:0">
+  <div class="kb" style="font-size:14px">📋 Davamiyyət</div>
+  {% if dav_list %}
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Tarix</th><th style="text-align:center">Status</th></tr></thead>
+    <tbody>{% for item in dav_list %}<tr>
+      <td style="color:#aaa;font-size:11px">{{ loop.index }}</td>
+      <td>{{ item.tarix.strftime('%d.%m.%Y') }}</td>
+      <td style="text-align:center">{% if item.status=='i' %}<span class="bdg bdg-y">✓ İştirak</span>{% else %}<span class="bdg bdg-r">✗ Qayıb</span>{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p style="color:#aaa;font-size:14px">Dərs günü yoxdur.</p>{% endif %}
+</div>
+<div class="kart" style="margin:0">
+  <div class="kb" style="font-size:14px">⭐ Qiymətlər</div>
+  {% if qls %}
+  <div class="tw"><table>
+    <thead><tr><th>Növ</th><th>Ad</th><th style="text-align:center">Bal</th></tr></thead>
+    <tbody>{% for q in qls %}<tr>
+      <td><span class="bdg bdg-b" style="font-size:11px">{{ q.nov }}</span></td>
+      <td>{{ q.ad }}</td>
+      <td style="text-align:center;font-weight:700">{% if q.bal is not none %}<span style="color:{% if q.bal>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ q.bal|int }}</span>{% else %}—{% endif %}</td>
+    </tr>{% endfor %}
+    {% if orta is not none %}<tr style="background:#f8f9ff"><td colspan="2" style="font-weight:700;color:#1a237e">Orta bal</td><td style="text-align:center;font-weight:700;font-size:16px"><span style="color:{% if orta>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ orta }}</span></td></tr>{% endif %}
+    </tbody>
+  </table></div>
+  {% else %}<p style="color:#aaa;font-size:14px">Qiymət yoxdur.</p>{% endif %}
+</div>
+</div>
+{% endblock %}

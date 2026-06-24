@@ -1,0 +1,47 @@
+{% extends 'telebe_base.html' %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<div style="max-width:540px;margin:0 auto">
+  <div class="kart" style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;padding:22px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:26px">🎓</div>
+      <div><div style="font-size:18px;font-weight:700">{{ telebe.ad_soyad }}</div>
+        <div style="opacity:.8;font-size:13px;margin-top:3px">@{{ telebe.istifadeci_adi or '—' }}</div></div>
+    </div>
+  </div>
+  {% if xeta %}<div class="alt alt-x">{{ xeta }}</div>{% endif %}
+  {% if ugur %}<div class="alt alt-ok">✓ {{ ugur }}</div>{% endif %}
+  <div class="kart">
+    <div class="kb" style="font-size:15px">🔒 Şifrə dəyişmə</div>
+    <form method="POST">
+      <input type="hidden" name="tur" value="sifre">
+      <div class="fld"><label>Köhnə şifrə</label><input type="password" name="kohne_sifre" required></div>
+      <div class="fld"><label>Yeni şifrə</label><input type="password" name="yeni_sifre" id="ys" required></div>
+      <div class="fld"><label>Yeni şifrəni təkrarla</label><input type="password" name="yeni_sifre2" id="ys2" oninput="chk()">
+        <div id="cm" style="font-size:12px;margin-top:4px"></div></div>
+      <button class="btn btn-p" type="submit">🔒 Şifrəni dəyiş</button>
+    </form>
+  </div>
+  <div class="kart">
+    <div class="kb" style="font-size:15px">📋 Şəxsi məlumatlar</div>
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px">
+      {% for lbl,val in [('Ad Soyad',telebe.ad_soyad),('Ata adı',telebe.ata_adi),('FİN kod',telebe.fin_kod),('Doğum tarixi',telebe.dogum_tarixi.strftime('%d.%m.%Y') if telebe.dogum_tarixi else None),('E-poçt',telebe.email),('Telefon',telebe.telefon)] %}
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e8eaf6">
+        <span style="color:#888;font-weight:600">{{ lbl }}</span><span>{{ val or '—' }}</span>
+      </div>{% endfor %}
+    </div>
+    <form method="POST">
+      <input type="hidden" name="tur" value="meluat">
+      <div class="fld"><label>E-poçt</label><input type="email" name="email" value="{{ telebe.email or '' }}"></div>
+      <div class="fld"><label>Telefon</label><input type="tel" name="telefon" value="{{ telebe.telefon or '' }}"></div>
+      <button class="btn btn-s" type="submit">💾 Yadda saxla</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function chk(){const a=document.getElementById('ys').value,b=document.getElementById('ys2').value,el=document.getElementById('cm');
+if(!b){el.textContent='';return;}el.textContent=a===b?'✓ Uyğundur':'✗ Uyğun deyil';el.style.color=a===b?'#2e7d32':'#c62828';}
+</script>
+{% endblock %}

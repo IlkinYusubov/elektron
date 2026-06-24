@@ -1,0 +1,47 @@
+{% extends 'telebe_base.html' %}
+{% block title %}Kabinetim{% endblock %}
+{% block content %}
+<div class="kart" style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;padding:24px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:28px">🎓</div>
+    <div>
+      <div style="font-size:20px;font-weight:700">{{ telebe.ad_soyad }}{% if telebe.ata_adi %} {{ telebe.ata_adi }}{% endif %}</div>
+      <div style="opacity:.8;font-size:13px;margin-top:3px">
+        {{ qrup.ad if qrup else '' }}{% if ixt %} · {{ ixt.ad }}{% endif %}
+        {% if qrup and qrup.kurs %} · {{ qrup.kurs }}-ci kurs{% endif %}
+      </div>
+    </div>
+    <div style="margin-left:auto"><a href="/kabinet/profil"><button class="btn" style="background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4)">⚙ Profil</button></a></div>
+  </div>
+</div>
+{% if dersler %}
+{% set cf=dersler|sum(attribute='fais') %}{% set orl=dersler|selectattr('orta')|list %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+  <div class="kart" style="padding:14px 16px;margin:0"><div style="font-size:11px;color:#5c6bc0;font-weight:700;margin-bottom:2px">Fənn sayı</div><div style="font-size:26px;font-weight:700;color:#1a237e">{{ dersler|length }}</div></div>
+  <div class="kart" style="padding:14px 16px;margin:0"><div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:2px">Orta dav.</div><div style="font-size:26px;font-weight:700;color:#2e7d32">{{ (cf/dersler|length)|round|int }}%</div></div>
+  {% if orl %}<div class="kart" style="padding:14px 16px;margin:0"><div style="font-size:11px;color:#f57c00;font-weight:700;margin-bottom:2px">Orta qiymət</div><div style="font-size:26px;font-weight:700;color:#e65100">{{ (orl|sum(attribute='orta')/orl|length)|round|int }}</div></div>{% endif %}
+  <div class="kart" style="padding:14px 16px;margin:0"><div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:2px">Diqqət</div><div style="font-size:26px;font-weight:700;color:#b71c1c">{{ dersler|selectattr('status','eq','diqqet')|list|length }}</div></div>
+</div>
+<div class="kart">
+  <div class="kb">📚 Fənlərim</div>
+  <div class="tw"><table>
+    <thead><tr><th>Fənn</th><th>Müəllim</th><th style="text-align:center">Dərs</th><th style="text-align:center">İştirak</th><th style="text-align:center">Qayıb</th><th style="min-width:120px">Davamiyyət</th><th style="text-align:center">Orta bal</th><th style="text-align:center">Status</th><th></th></tr></thead>
+    <tbody>
+    {% for d in dersler %}
+    <tr>
+      <td><b>{{ d.ad }}</b></td><td style="font-size:12px;color:#555">{{ d.muellim }}</td>
+      <td style="text-align:center">{{ d.gun_say }}</td>
+      <td style="text-align:center;color:#2e7d32;font-weight:700">{{ d.istirak }}</td>
+      <td style="text-align:center;color:#c62828;font-weight:700">{{ d.qayib }}</td>
+      <td><div style="font-size:12px;font-weight:700;color:{% if d.fais>=70 %}#2e7d32{% else %}#c62828{% endif %}">{{ d.fais }}%</div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:{{ d.fais }}%;background:{% if d.fais>=70 %}#2e7d32{% else %}#c62828{% endif %}"></div></div></td>
+      <td style="text-align:center;font-weight:700">{% if d.orta is not none %}<span style="color:{% if d.orta>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ d.orta }}</span>{% else %}—{% endif %}</td>
+      <td style="text-align:center">{% if d.status=='normal' %}<span class="bdg bdg-y">✓</span>{% else %}<span class="bdg bdg-r">⚠</span>{% endif %}</td>
+      <td><a href="/kabinet/ders/{{ d.id }}"><button class="btn btn-s" style="padding:4px 10px;font-size:12px">Ətraflı →</button></a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% else %}<div class="kart" style="color:#aaa;text-align:center;padding:32px">Fənn tapılmadı. Admin ilə əlaqə saxlayın.</div>{% endif %}
+{% endblock %}

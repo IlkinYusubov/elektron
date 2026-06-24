@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}E-Jurnal{% endblock %}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f8;color:#1a1a2e;font-size:15px}
+a{text-decoration:none;color:inherit}
+nav{background:#1a237e;color:#fff;padding:0 20px;display:flex;align-items:center;height:52px;position:sticky;top:0;z-index:300;box-shadow:0 2px 8px #0003;gap:4px}
+.logo{font-size:16px;font-weight:700;margin-right:20px;white-space:nowrap;flex-shrink:0}
+.nav-links{display:flex;gap:2px;flex:1;flex-wrap:wrap}
+.nl{padding:5px 11px;border-radius:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,.75);transition:.13s;white-space:nowrap}
+.nl:hover,.nl.akt{background:rgba(255,255,255,.15);color:#fff}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-ad{font-size:12px;opacity:.75;white-space:nowrap}
+.cix{padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);font-size:12px;color:#fff;background:transparent;cursor:pointer}
+.cix:hover{background:rgba(255,255,255,.12)}
+main{max-width:1320px;margin:22px auto;padding:0 16px}
+.kart{background:#fff;border-radius:12px;box-shadow:0 1px 5px #0001;padding:20px 22px;margin-bottom:16px}
+.kb{font-size:16px;font-weight:700;color:#1a237e;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.fsah{min-width:140px}
+label.lbl{font-size:11.5px;font-weight:700;color:#666;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+select,input[type=text],input[type=date],input[type=password],input[type=number],input[type=email],input[type=tel]{font-size:13.5px;padding:7px 10px;border:1.5px solid #dde2f0;border-radius:7px;background:#fff;color:#1a1a2e;outline:none;transition:.13s;width:100%}
+select:focus,input:focus{border-color:#3949ab;box-shadow:0 0 0 3px #3949ab12}
+.btn{padding:7px 15px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.13s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.btn-p{background:#1a237e;color:#fff}.btn-p:hover{background:#283593}
+.btn-s{background:#eef0fb;color:#1a237e;border:1.5px solid #c5cae9}.btn-s:hover{background:#e3e6f7}
+.btn-d{background:#fff0f0;color:#c62828;border:1.5px solid #ffcdd2}.btn-d:hover{background:#ffe0e0}
+.btn-g{background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7}.btn-g:hover{background:#dcedc8}
+.btn-sm{padding:3px 9px;font-size:12px;border-radius:5px}
+.tw{overflow-x:auto;border-radius:8px;border:1.5px solid #e8eaf6}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f0f2ff;color:#3949ab;font-weight:700;padding:8px 10px;text-align:left;border-bottom:2px solid #c5cae9;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #f0f2f7;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#fafbff}
+.bdg{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
+.bdg-y{background:#e8f5e9;color:#2e7d32}
+.bdg-r{background:#ffebee;color:#c62828}
+.bdg-b{background:#e3f2fd;color:#1565c0}
+.bdg-o{background:#fff8e1;color:#e65100}
+.bdg-gr{background:#f3e5f5;color:#6a1b9a}
+.alt{padding:10px 14px;border-radius:7px;margin-bottom:12px;font-size:13px}
+.alt-x{background:#ffebee;color:#c62828;border-left:4px solid #e53935}
+.alt-ok{background:#e8f5e9;color:#2e7d32;border-left:4px solid #43a047}
+.prog-wrap{background:#e8eaf6;border-radius:20px;height:8px;overflow:hidden;margin-top:4px}
+.prog-bar{height:100%;border-radius:20px}
+.tog{display:inline-block;width:38px;height:20px;border-radius:10px;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.tog.on{background:#2e7d32}.tog.off{background:#bbb}
+.tog::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;transition:.2s}
+.tog.on::after{left:21px}.tog.off::after{left:3px}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+{% if session.get('muellim_id') %}
+<nav>
+  <div class="logo">📚 E-Jurnal</div>
+  <div class="nav-links">
+    <a href="/panel"   class="nl {% if request.path=='/panel' %}akt{% endif %}">Ana səhifə</a>
+    <a href="/jurnal"  class="nl {% if request.path=='/jurnal' %}akt{% endif %}">📋 Davamiyyət</a>
+    <a href="/qiymet"  class="nl {% if request.path=='/qiymet' %}akt{% endif %}">⭐ Qiymət</a>
+    <a href="/hesabat" class="nl {% if request.path=='/hesabat' %}akt{% endif %}">📈 Hesabat</a>
+    {% if session.get('rol')=='admin' %}
+    <a href="/admin"          class="nl {% if request.path=='/admin' %}akt{% endif %}">⚙ İdarəetmə</a>
+    <a href="/admin/jurnal"   class="nl {% if '/admin/jurnal' in request.path %}akt{% endif %}">📋 A-Jurnal</a>
+    <a href="/admin/qiymet"   class="nl {% if '/admin/qiymet' in request.path %}akt{% endif %}">⭐ A-Qiymət</a>
+    <a href="/admin/hesabat"  class="nl {% if '/admin/hesabat' in request.path %}akt{% endif %}">📈 A-Hesabat</a>
+    <a href="/admin/audit"    class="nl {% if '/admin/audit' in request.path %}akt{% endif %}">🔍 Audit</a>
+    {% endif %}
+  </div>
+  <div class="nav-r">
+    <span class="nav-ad">{{ session.muellim_ad }}</span>
+    <a href="/cixis"><button class="cix">Çıxış</button></a>
+  </div>
+</nav>
+{% endif %}
+<main>{% block content %}{% endblock %}</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

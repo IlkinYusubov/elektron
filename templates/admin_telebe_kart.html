@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Tələbə kartı{% endblock %}
+{% block content %}
+<div style="margin-bottom:12px"><a href="/admin" style="color:#3949ab;font-size:13px;font-weight:600">← Adminə qayıt</a></div>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:16px">
+<div>
+  <div class="kart" style="text-align:center;padding:24px">
+    <div style="width:72px;height:72px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px">🎓</div>
+    <div style="font-size:17px;font-weight:700;color:#1a237e">{{ t.ad_soyad }}</div>
+    <div style="font-size:13px;color:#888;margin-top:3px">{{ t.ata_adi or '' }}</div>
+    <div style="margin-top:8px">
+      <span class="bdg {% if t.status=='aktiv' %}bdg-y{% elif t.status=='mezun' %}bdg-b{% else %}bdg-r{% endif %}">{{ t.status }}</span>
+      {% if not t.aktiv %}<span class="bdg bdg-r" style="margin-left:4px">Passiv</span>{% endif %}
+    </div>
+  </div>
+  <div class="kart">
+    <div class="kb" style="font-size:14px">👤 Şəxsi məlumatlar</div>
+    {% for label,val in [('FİN kod',t.fin_kod),('Doğum tarixi',t.dogum_tarixi.strftime('%d.%m.%Y') if t.dogum_tarixi else None),('Telefon',t.telefon),('E-poçt',t.email),('İstifadəçi adı',t.istifadeci_adi)] %}
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f2f7;font-size:13px">
+      <span style="color:#888;font-weight:600">{{ label }}</span><span>{{ val or '—' }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="kart">
+    <div class="kb" style="font-size:14px">🏫 Təhsil məlumatları</div>
+    {% for label,val in [('Qrup',qrup.ad if qrup else None),('İxtisas',ixt.ad if ixt else None),('Kurs',(qrup.kurs|string+'-cü kurs') if qrup and qrup.kurs else None),('Təhsil forması',qrup.tehsil_formu if qrup else None),('Qəbul ili',qrup.qebul_ili|string if qrup and qrup.qebul_ili else None)] %}
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f2f7;font-size:13px">
+      <span style="color:#888;font-weight:600">{{ label }}</span><span>{{ val or '—' }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<div>
+  <div class="kart">
+    <div class="kb">📊 Fənn statistikası</div>
+    {% if dersler_stat %}
+    <div class="tw"><table>
+      <thead><tr><th>Fənn</th><th style="text-align:center">Dərs</th><th style="text-align:center">İştirak</th><th style="text-align:center">Qayıb</th><th style="min-width:130px">Davamiyyət</th><th style="text-align:center">Orta bal</th></tr></thead>
+      <tbody>
+      {% for d in dersler_stat %}
+      <tr>
+        <td><b>{{ d.ad }}</b></td>
+        <td style="text-align:center">{{ d.gun_say }}</td>
+        <td style="text-align:center;color:#2e7d32;font-weight:700">{{ d.istirak }}</td>
+        <td style="text-align:center;color:#c62828;font-weight:700">{{ d.qayib }}</td>
+        <td>
+          <div style="font-size:12px;font-weight:700;color:{% if d.fais>=70 %}#2e7d32{% else %}#c62828{% endif %}">{{ d.fais }}%</div>
+          <div class="prog-wrap"><div class="prog-bar" style="width:{{ d.fais }}%;background:{% if d.fais>=70 %}#2e7d32{% else %}#c62828{% endif %}"></div></div>
+        </td>
+        <td style="text-align:center;font-weight:700">
+          {% if d.orta is not none %}<span style="color:{% if d.orta>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ d.orta }}</span>{% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<p style="color:#aaa;font-size:14px">Məlumat yoxdur.</p>{% endif %}
+  </div>
+</div>
+</div>
+{% endblock %}

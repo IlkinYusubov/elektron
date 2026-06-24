@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Davamiyyət{% endblock %}
+{% block head %}
+<style>
+.ab{padding:3px 9px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:.12s;display:inline-block;text-align:center}
+.ab-i{background:#e8f5e9;border-color:#81c784;color:#2e7d32}
+.ab-i.on{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.ab-q{background:#ffebee;border-color:#ef9a9a;color:#c62828}
+.ab-q.on{background:#c62828;color:#fff;border-color:#c62828}
+.gth{writing-mode:vertical-lr;transform:rotate(180deg);font-size:11px;white-space:nowrap;padding:2px 0;max-height:68px}
+.gdel{font-size:10px;color:#ddd;cursor:pointer;display:block;text-align:center;margin-top:2px}
+.gdel:hover{color:#e53935}
+th.gc{text-align:center;padding:3px 4px;min-width:58px}
+td.gc{text-align:center;padding:3px 4px}
+</style>
+{% endblock %}
+{% block content %}
+<div class="kart">
+  <div class="kb">📋 Davamiyyət jurnalı</div>
+  <form method="GET" class="frow">
+    <div class="fsah"><label class="lbl">Fənn</label>
+      <select name="ders_id" onchange="this.form.submit()">
+        <option value="">— Fənn seçin —</option>
+        {% for d in dersler %}<option value="{{ d.id }}" {% if d.id==ders_id %}selected{% endif %}>{{ d.ad }}</option>{% endfor %}
+      </select></div>
+    <div class="fsah"><label class="lbl">Qrup</label>
+      <select name="qrup_id" onchange="this.form.submit()">
+        <option value="">— Qrup seçin —</option>
+        {% for q in qruplar %}<option value="{{ q.id }}" {% if q.id==qrup_id %}selected{% endif %}>{{ q.ad }}</option>{% endfor %}
+      </select></div>
+    <div class="fsah"><label class="lbl">Tarixi filtr (isteğe bağlı)</label>
+      <input type="date" name="tarix" value="{{ tarix_s }}" onchange="this.form.submit()"></div>
+    {% if tarix_s %}<div style="align-self:flex-end"><a href="/jurnal?ders_id={{ ders_id }}&qrup_id={{ qrup_id }}"><button type="button" class="btn btn-s btn-sm">✕ Filtr sil</button></a></div>{% endif %}
+  </form>
+
+  {% if ders_id and qrup_id %}
+  <div class="frow" style="margin-bottom:14px">
+    <div><label class="lbl">Yeni dərs tarixi</label><input type="date" id="yT" style="width:160px"></div>
+    <div style="align-self:flex-end"><button class="btn btn-p" onclick="gunElave()">+ Dərs günü əlavə et</button></div>
+    <span id="gErr" style="color:#c62828;font-size:13px;align-self:center"></span>
+  </div>
+  <div style="font-size:12px;color:#888;margin-bottom:8px">💡 Dəyişiklik avtomatik saxlanır. Bütün yeni tələbələr default olaraq İ qeyd edilir.</div>
+
+  {% if gun_list %}
+  <div class="tw"><table>
+    <thead><tr>
+      <th style="min-width:160px">Tələbə</th>
+      {% for g in gun_list %}
+      <th class="gc"><div class="gth">{{ g.tarix.strftime('%d.%m') }}</div>
+        <span class="gdel" onclick="gunSil({{ g.id }})">✕</span></th>
+      {% endfor %}
+      <th style="text-align:center;min-width:60px">Dav.%</th>
+    </tr></thead>
+    <tbody>
+    {% for t in telebe_list %}
+    {% set is=namespace(n=0) %}
+    <tr id="tr-{{ t.id }}">
+      <td><b>{{ t.ad_soyad }}</b></td>
+      {% for g in gun_list %}
+        {% set st=dav_map.get((t.id,g.id),'i') %}
+        {% if st=='i' %}{% set is.n=is.n+1 %}{% endif %}
+        <td class="gc">
+          <button class="ab ab-i {% if st=='i' %}on{% endif %}" id="bi-{{ t.id }}-{{ g.id }}" onclick="setDav({{ t.id }},{{ g.id }},'i',{{ gun_list|length }})">İ</button>
+          <button class="ab ab-q {% if st=='q' %}on{% endif %}" id="bq-{{ t.id }}-{{ g.id }}" onclick="setDav({{ t.id }},{{ g.id }},'q',{{ gun_list|length }})">Q·B</button>
+        </td>
+      {% endfor %}
+      <td style="text-align:center;font-weight:700" id="fp-{{ t.id }}">
+        {% set f=(is.n/gun_list|length*100)|round|int %}
+        <span style="color:{% if f>=70 %}#2e7d32{% else %}#c62828{% endif %}">{{ f }}%</span>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<div style="color:#aaa;padding:16px 0;font-size:14px">Tarix əlavə edin.</div>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const DID={{ ders_id or 'null' }},QID={{ qrup_id or 'null' }};
+function setDav(tid,gid,st,total){
+  document.getElementById('bi-'+tid+'-'+gid).classList.toggle('on',st==='i');
+  document.getElementById('bq-'+tid+'-'+gid).classList.toggle('on',st==='q');
+  fetch('/api/davamiyyet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telebe_id:tid,ders_gunu_id:gid,status:st})}).then(()=>refreshFais(tid,total));
+}
+function refreshFais(tid,total){
+  const row=document.getElementById('tr-'+tid);
+  const n=row.querySelectorAll('.ab-i.on').length;
+  const f=Math.round(n/total*100);
+  document.getElementById('fp-'+tid).innerHTML=`<span style="color:${f>=70?'#2e7d32':'#c62828'}">${f}%</span>`;
+}
+function gunElave(){
+  const t=document.getElementById('yT').value,e=document.getElementById('gErr');
+  if(!t){e.textContent='Tarix seçin!';return;}
+  fetch('/api/gun_elave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ders_id:DID,qrup_id:QID,tarix:t})})
+  .then(r=>r.json()).then(d=>{if(d.ok)location.reload();else e.textContent=d.xeta||'Xəta!';});
+}
+function gunSil(gid){
+  if(!confirm('Bu dərs gününü silmək istəyirsiniz?'))return;
+  fetch('/api/gun_sil',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gun_id:gid})}).then(()=>location.reload());
+}
+</script>
+{% endblock %}

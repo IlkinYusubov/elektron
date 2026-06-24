@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% block title %}Admin{% endblock %}
+{% block head %}
+<style>
+.tab-bar{display:flex;gap:3px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;border-radius:7px;color:#666;border:1.5px solid #e8eaf6;background:#f8f9ff;transition:.12s}
+.tab.akt{background:#1a237e;color:#fff;border-color:#1a237e}
+.panel{display:none}.panel.akt{display:block}
+.tog{display:inline-block;width:36px;height:18px;border-radius:9px;position:relative;cursor:pointer;transition:.2s;vertical-align:middle}
+.tog.on{background:#2e7d32}.tog.off{background:#bbb}
+.tog::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;transition:.2s}
+.tog.on::after{left:21px}.tog.off::after{left:3px}
+</style>
+{% endblock %}
+{% block content %}
+<div class="kart">
+  <div class="kb">⚙️ Admin — İdarəetmə paneli</div>
+  <div class="tab-bar">
+    <button class="tab akt" onclick="sw('muellim',this)">👨‍🏫 Müəllimlər</button>
+    <button class="tab" onclick="sw('ders',this)">📚 Fənlər</button>
+    <button class="tab" onclick="sw('ixtisas',this)">🎓 İxtisaslar</button>
+    <button class="tab" onclick="sw('qrup',this)">🏫 Qruplar</button>
+    <button class="tab" onclick="sw('telebe',this)">👨‍🎓 Tələbələr</button>
+  </div>
+
+  <!-- MÜƏLLİMLƏR -->
+  <div id="pan-muellim" class="panel akt">
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #e3e6f7">
+      <div style="font-weight:700;color:#3949ab;font-size:13px;margin-bottom:8px">+ Yeni müəllim</div>
+      <div class="frow" style="margin:0;flex-wrap:wrap">
+        <div class="fsah"><label class="lbl">İstifadəçi adı*</label><input type="text" id="mAd" placeholder="muellim1"></div>
+        <div class="fsah"><label class="lbl">Şifrə*</label><input type="text" id="mSif" placeholder="1234"></div>
+        <div class="fsah" style="min-width:160px"><label class="lbl">Ad Soyad</label><input type="text" id="mAdSoyad" placeholder="Əliyev Əli"></div>
+        <div class="fsah"><label class="lbl">Şöbə</label><input type="text" id="mSobe" placeholder="Riyaziyyat şöbəsi"></div>
+        <div class="fsah"><label class="lbl">Telefon</label><input type="text" id="mTel" placeholder="+994..."></div>
+        <div class="fsah"><label class="lbl">E-poçt</label><input type="text" id="mEmail" placeholder="...@..."></div>
+        <div class="fsah"><label class="lbl">Rol</label><select id="mRol"><option value="muellim">Müəllim</option><option value="admin">Admin</option></select></div>
+        <div style="align-self:flex-end"><button class="btn btn-p" onclick="mElave()">+ Əlavə et</button></div>
+        <span id="mErr" style="color:#c62828;font-size:12px;align-self:center"></span>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>İstifadəçi adı</th><th>Ad Soyad</th><th>Şöbə</th><th>Telefon</th><th>Rol</th><th style="text-align:center">Aktiv</th><th>Əməliyyat</th></tr></thead>
+      <tbody id="mTbody">
+      {% for m in muellimler %}
+      <tr id="mr-{{ m.id }}">
+        <td>{{ loop.index }}</td>
+        <td><b><a href="/admin/muellim/{{ m.id }}" style="color:#1a237e">{{ m.ad }}</a></b></td>
+        <td>{{ m.ad_soyad or '—' }}</td>
+        <td style="font-size:12px;color:#555">{{ m.sobe or '—' }}</td>
+        <td style="font-size:12px">{{ m.telefon or '—' }}</td>
+        <td><span class="bdg {% if m.rol=='admin' %}bdg-b{% else %}bdg-y{% endif %}">{{ m.rol }}</span></td>
+        <td style="text-align:center">
+          <span class="tog {% if m.aktiv %}on{% else %}off{% endif %}" id="mtog-{{ m.id }}" onclick="mAktiv({{ m.id }},this)"></span>
+        </td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap">
+          {% if m.ad != 'admin' %}
+          <button class="btn btn-d btn-sm" onclick="mSil({{ m.id }})">Sil</button>
+          <button class="btn btn-s btn-sm" onclick="mSifre({{ m.id }},'{{ m.ad }}')">🔑 Şifrə</button>
+          {% endif %}
+          <a href="/admin/muellim/{{ m.id }}"><button class="btn btn-g btn-sm">Kart</button></a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- FƏNLƏR -->
+  <div id="pan-ders" class="panel">
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #e3e6f7">
+      <div style="font-weight:700;color:#3949ab;font-size:13px;margin-bottom:8px">+ Yeni fənn</div>
+      <div class="frow" style="margin:0">
+        <div class="fsah" style="min-width:180px"><label class="lbl">Fənn adı*</label><input type="text" id="dAd" placeholder="Riyaziyyat"></div>
+        <div class="fsah"><label class="lbl">Müəllim*</label>
+          <select id="dMuellim">{% for m in muellimler %}{% if m.rol=='muellim' %}<option value="{{ m.id }}">{{ m.ad_soyad or m.ad }}</option>{% endif %}{% endfor %}</select></div>
+        <div style="align-self:flex-end"><button class="btn btn-p" onclick="dElave()">+ Əlavə et</button></div>
+        <span id="dErr" style="color:#c62828;font-size:12px;align-self:center"></span>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Fənn</th><th>Müəllim</th><th style="text-align:center">Aktiv</th></tr></thead>
+      <tbody id="dTbody">
+      {% for d in dersler %}
+      {% set m=muellimler|selectattr('id','eq',d.muellim_id)|first %}
+      <tr id="dr-{{ d.id }}">
+        <td>{{ loop.index }}</td><td><b>{{ d.ad }}</b></td>
+        <td>{{ (m.ad_soyad or m.ad) if m else '—' }}</td>
+        <td style="text-align:center"><span class="tog {% if d.aktiv %}on{% else %}off{% endif %}" onclick="dAktiv({{ d.id }},this)"></span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- İXTİSASLAR -->
+  <div id="pan-ixtisas" class="panel">
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #e3e6f7">
+      <div style="font-weight:700;color:#3949ab;font-size:13px;margin-bottom:8px">+ Yeni ixtisas</div>
+      <div class="frow" style="margin:0">
+        <div class="fsah" style="min-width:260px"><label class="lbl">İxtisas adı*</label><input type="text" id="iAd" placeholder="Proqram təminatı mühəndisliyi"></div>
+        <div style="align-self:flex-end"><button class="btn btn-p" onclick="iElave()">+ Əlavə et</button></div>
+        <span id="iErr" style="color:#c62828;font-size:12px;align-self:center"></span>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>İxtisas adı</th></tr></thead>
+      <tbody id="iTbody">
+      {% for ix in ixtisaslar %}
+      <tr id="ir-{{ ix.id }}"><td>{{ loop.index }}</td><td><b>{{ ix.ad }}</b></td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- QRUPLAR -->
+  <div id="pan-qrup" class="panel">
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #e3e6f7">
+      <div style="font-weight:700;color:#3949ab;font-size:13px;margin-bottom:8px">+ Yeni qrup</div>
+      <div class="frow" style="margin:0;flex-wrap:wrap">
+        <div class="fsah"><label class="lbl">Qrup adı*</label><input type="text" id="qAd" placeholder="101-ci qrup"></div>
+        <div class="fsah"><label class="lbl">İxtisas</label>
+          <select id="qIxt"><option value="">—</option>{% for ix in ixtisaslar %}<option value="{{ ix.id }}">{{ ix.ad }}</option>{% endfor %}</select></div>
+        <div class="fsah" style="min-width:80px"><label class="lbl">Kurs</label>
+          <select id="qKurs"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+        <div class="fsah"><label class="lbl">Təhsil forması</label>
+          <select id="qForm"><option>əyani</option><option>qiyabi</option><option>distant</option></select></div>
+        <div class="fsah" style="min-width:90px"><label class="lbl">Qəbul ili</label><input type="text" id="qIl" placeholder="2024"></div>
+        <div style="align-self:flex-end"><button class="btn btn-p" onclick="qElave()">+ Əlavə et</button></div>
+        <span id="qErr" style="color:#c62828;font-size:12px;align-self:center"></span>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Qrup</th><th>İxtisas</th><th>Kurs</th><th>Forma</th><th>Qəbul ili</th><th style="text-align:center">Aktiv</th></tr></thead>
+      <tbody id="qTbody">
+      {% for q in qruplar %}
+      {% set ix=ixtisaslar|selectattr('id','eq',q.ixtisas_id)|first %}
+      <tr id="qr-{{ q.id }}">
+        <td>{{ loop.index }}</td><td><b>{{ q.ad }}</b></td>
+        <td style="font-size:12px">{{ ix.ad if ix else '—' }}</td>
+        <td style="text-align:center">{{ q.kurs or '—' }}</td>
+        <td><span class="bdg bdg-b">{{ q.tehsil_formu or '—' }}</span></td>
+        <td>{{ q.qebul_ili or '—' }}</td>
+        <td style="text-align:center"><span class="tog {% if q.aktiv %}on{% else %}off{% endif %}" onclick="qAktiv({{ q.id }},this)"></span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- TƏLƏBƏLƏR -->
+  <div id="pan-telebe" class="panel">
+    <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:12px;border:1.5px solid #e3e6f7">
+      <div style="font-weight:700;color:#3949ab;font-size:13px;margin-bottom:8px">+ Yeni tələbə</div>
+      <div class="frow" style="margin:0;flex-wrap:wrap">
+        <div class="fsah" style="min-width:170px"><label class="lbl">Ad Soyad*</label><input type="text" id="tAd" placeholder="Əliyev Murad"></div>
+        <div class="fsah"><label class="lbl">Ata adı</label><input type="text" id="tAta" placeholder="Əli"></div>
+        <div class="fsah"><label class="lbl">FİN kod</label><input type="text" id="tFin" placeholder="AA1234567"></div>
+        <div class="fsah"><label class="lbl">Doğum tarixi</label><input type="date" id="tDog"></div>
+        <div class="fsah"><label class="lbl">Telefon</label><input type="text" id="tTel" placeholder="+994..."></div>
+        <div class="fsah"><label class="lbl">E-poçt</label><input type="text" id="tEmail" placeholder="...@..."></div>
+        <div class="fsah"><label class="lbl">Qrup*</label>
+          <select id="tQrup">{% for q in qruplar %}<option value="{{ q.id }}">{{ q.ad }}</option>{% endfor %}</select></div>
+        <div class="fsah" style="min-width:150px"><label class="lbl">İstifadəçi adı</label><input type="text" id="tIad" placeholder="eliyev.murad"></div>
+        <div class="fsah"><label class="lbl">Şifrə</label><input type="text" id="tSif" value="1234" placeholder="1234"></div>
+        <div style="align-self:flex-end"><button class="btn btn-p" onclick="tElave()">+ Əlavə et</button></div>
+        <span id="tErr" style="color:#c62828;font-size:12px;align-self:center"></span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="tSearch" placeholder="🔍 Tələbə axtar..." style="width:220px" oninput="tAxtar()">
+      <select id="tQrupFilter" onchange="tAxtar()" style="width:160px">
+        <option value="">Bütün qruplar</option>
+        {% for q in qruplar %}<option value="{{ q.id }}">{{ q.ad }}</option>{% endfor %}
+      </select>
+      <select id="tStatusFilter" onchange="tAxtar()" style="width:140px">
+        <option value="">Bütün statuslar</option>
+        <option value="aktiv">Aktiv</option><option value="mezun">Məzun</option><option value="xaric">Xaric edilmiş</option>
+      </select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Ad Soyad</th><th>FİN</th><th>Qrup</th><th>İstifadəçi adı</th><th>Status</th><th style="text-align:center">Aktiv</th><th>Əməliyyat</th></tr></thead>
+      <tbody id="tTbody">
+      {% for t in telebelr %}
+      {% set q=qruplar|selectattr('id','eq',t.qrup_id)|first %}
+      <tr id="tr2-{{ t.id }}" data-qrup="{{ t.qrup_id }}" data-status="{{ t.status }}" data-ad="{{ t.ad_soyad|lower }}">
+        <td>{{ loop.index }}</td>
+        <td><b><a href="/admin/telebe/{{ t.id }}" style="color:#1a237e">{{ t.ad_soyad }}</a></b></td>
+        <td style="font-size:12px;color:#666">{{ t.fin_kod or '—' }}</td>
+        <td style="font-size:12px">{{ q.ad if q else '—' }}</td>
+        <td style="font-size:12px;color:#555">{{ t.istifadeci_adi or '—' }}</td>
+        <td>
+          <select class="bdg" style="border:none;font-size:11.5px;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:20px;background:{% if t.status=='aktiv' %}#e8f5e9;color:#2e7d32{% elif t.status=='mezun' %}#e3f2fd;color:#1565c0{% else %}#ffebee;color:#c62828{% endif %}"
+            onchange="tStatus({{ t.id }},this.value)">
+            <option value="aktiv" {% if t.status=='aktiv' %}selected{% endif %}>aktiv</option>
+            <option value="mezun" {% if t.status=='mezun' %}selected{% endif %}>məzun</option>
+            <option value="xaric" {% if t.status=='xaric' %}selected{% endif %}>xaric</option>
+          </select>
+        </td>
+        <td style="text-align:center"><span class="tog {% if t.aktiv %}on{% else %}off{% endif %}" onclick="tAktiv({{ t.id }},this)"></span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-d btn-sm" onclick="tSil({{ t.id }})">Sil</button>
+          <button class="btn btn-s btn-sm" onclick="tSifre({{ t.id }},'{{ t.ad_soyad }}')">🔑</button>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function sw(name,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('akt'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('akt'));el.classList.add('akt');document.getElementById('pan-'+name).classList.add('akt');}
+function post(url,data,cb,errId){fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json()).then(d=>{if(d.ok)cb(d);else if(errId)document.getElementById(errId).textContent=d.xeta||'Xəta!';});}
+
+// Müəllim
+let mIdx={{ muellimler|length }};
+function mElave(){
+  const ad=document.getElementById('mAd').value.trim(),sif=document.getElementById('mSif').value.trim();
+  if(!ad||!sif){document.getElementById('mErr').textContent='Ad və şifrə mütləqdir!';return;}
+  post('/api/admin/muellim_elave',{ad,sifre:sif,rol:document.getElementById('mRol').value,
+    ad_soyad:document.getElementById('mAdSoyad').value.trim(),sobe:document.getElementById('mSobe').value.trim(),
+    telefon:document.getElementById('mTel').value.trim(),email:document.getElementById('mEmail').value.trim()},d=>{
+    mIdx++;
+    document.getElementById('mTbody').insertAdjacentHTML('beforeend',
+      `<tr id="mr-${d.id}"><td>${mIdx}</td><td><b><a href="/admin/muellim/${d.id}" style="color:#1a237e">${ad}</a></b></td><td>${document.getElementById('mAdSoyad').value||'—'}</td><td>—</td><td>—</td><td><span class="bdg bdg-y">müəllim</span></td><td style="text-align:center"><span class="tog on" id="mtog-${d.id}" onclick="mAktiv(${d.id},this)"></span></td><td><button class="btn btn-d btn-sm" onclick="mSil(${d.id})">Sil</button></td></tr>`);
+    ['mAd','mSif','mAdSoyad','mSobe','mTel','mEmail'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('mErr').textContent='';
+  },'mErr');
+}
+function mAktiv(id,el){const on=el.classList.contains('on');el.classList.toggle('on',!on);el.classList.toggle('off',on);post('/api/admin/muellim_aktiv',{id,aktiv:!on},()=>{});}
+function mSil(id){if(!confirm('Silinsin?'))return;post('/api/admin/muellim_sil',{id},()=>document.getElementById('mr-'+id).remove());}
+
+// Fənn
+let dIdx={{ dersler|length }};
+function dElave(){
+  const ad=document.getElementById('dAd').value.trim(),mid=parseInt(document.getElementById('dMuellim').value);
+  const mAd=document.getElementById('dMuellim').selectedOptions[0].text;
+  if(!ad){document.getElementById('dErr').textContent='Ad daxil edin!';return;}
+  post('/api/admin/ders_elave',{ad,muellim_id:mid},d=>{
+    dIdx++;
+    document.getElementById('dTbody').insertAdjacentHTML('beforeend',
+      `<tr id="dr-${d.id}"><td>${dIdx}</td><td><b>${ad}</b></td><td>${mAd}</td><td style="text-align:center"><span class="tog on" onclick="dAktiv(${d.id},this)"></span></td></tr>`);
+    document.getElementById('dAd').value='';document.getElementById('dErr').textContent='';
+  },'dErr');
+}
+function dAktiv(id,el){const on=el.classList.contains('on');el.classList.toggle('on',!on);el.classList.toggle('off',on);post('/api/admin/ders_aktiv',{id,aktiv:!on},()=>{});}
+
+// İxtisas
+let iIdx={{ ixtisaslar|length }};
+function iElave(){
+  const ad=document.getElementById('iAd').value.trim();
+  if(!ad){document.getElementById('iErr').textContent='Ad daxil edin!';return;}
+  post('/api/admin/ixtisas_elave',{ad},d=>{
+    iIdx++;
+    document.getElementById('iTbody').insertAdjacentHTML('beforeend',`<tr id="ir-${d.id}"><td>${iIdx}</td><td><b>${ad}</b></td></tr>`);
+    document.getElementById('iAd').value='';document.getElementById('iErr').textContent='';
+    document.getElementById('qIxt').insertAdjacentHTML('beforeend',`<option value="${d.id}">${ad}</option>`);
+  },'iErr');
+}
+
+// Qrup
+let qIdx={{ qruplar|length }};
+function qElave(){
+  const ad=document.getElementById('qAd').value.trim();
+  if(!ad){document.getElementById('qErr').textContent='Ad daxil edin!';return;}
+  const ixt=document.getElementById('qIxt').value,ixtAd=document.getElementById('qIxt').selectedOptions[0].text;
+  post('/api/admin/qrup_elave',{ad,ixtisas_id:ixt||null,kurs:parseInt(document.getElementById('qKurs').value),
+    tehsil_formu:document.getElementById('qForm').value,qebul_ili:parseInt(document.getElementById('qIl').value)||null},d=>{
+    qIdx++;
+    document.getElementById('qTbody').insertAdjacentHTML('beforeend',
+      `<tr id="qr-${d.id}"><td>${qIdx}</td><td><b>${ad}</b></td><td style="font-size:12px">${ixt?ixtAd:'—'}</td><td style="text-align:center">${document.getElementById('qKurs').value}</td><td><span class="bdg bdg-b">${document.getElementById('qForm').value}</span></td><td>${document.getElementById('qIl').value||'—'}</td><td style="text-align:center"><span class="tog on" onclick="qAktiv(${d.id},this)"></span></td></tr>`);
+    document.getElementById('qAd').value='';document.getElementById('qIl').value='';document.getElementById('qErr').textContent='';
+    document.getElementById('tQrup').insertAdjacentHTML('beforeend',`<option value="${d.id}">${ad}</option>`);
+    document.getElementById('tQrupFilter').insertAdjacentHTML('beforeend',`<option value="${d.id}">${ad}</option>`);
+  },'qErr');
+}
+function qAktiv(id,el){const on=el.classList.contains('on');el.classList.toggle('on',!on);el.classList.toggle('off',on);post('/api/admin/qrup_aktiv',{id,aktiv:!on},()=>{});}
+
+// Tələbə
+let tIdx={{ telebelr|length }};
+function tElave(){
+  const ad=document.getElementById('tAd').value.trim(),qid=parseInt(document.getElementById('tQrup').value);
+  const qAd=document.getElementById('tQrup').selectedOptions[0].text;
+  if(!ad){document.getElementById('tErr').textContent='Ad Soyad mütləqdir!';return;}
+  post('/api/admin/telebe_elave',{ad_soyad:ad,ata_adi:document.getElementById('tAta').value.trim(),
+    fin_kod:document.getElementById('tFin').value.trim(),qrup_id:qid,
+    telefon:document.getElementById('tTel').value.trim(),email:document.getElementById('tEmail').value.trim(),
+    istifadeci_adi:document.getElementById('tIad').value.trim(),sifre:document.getElementById('tSif').value.trim()||'1234'},d=>{
+    tIdx++;
+    const iad=document.getElementById('tIad').value.trim();
+    document.getElementById('tTbody').insertAdjacentHTML('beforeend',
+      `<tr id="tr2-${d.id}" data-qrup="${qid}" data-status="aktiv" data-ad="${ad.toLowerCase()}"><td>${tIdx}</td><td><b><a href="/admin/telebe/${d.id}" style="color:#1a237e">${ad}</a></b></td><td style="font-size:12px;color:#666">${document.getElementById('tFin').value||'—'}</td><td style="font-size:12px">${qAd}</td><td style="font-size:12px;color:#555">${iad||'—'}</td><td><span class="bdg bdg-y">aktiv</span></td><td style="text-align:center"><span class="tog on" onclick="tAktiv(${d.id},this)"></span></td><td style="display:flex;gap:4px"><button class="btn btn-d btn-sm" onclick="tSil(${d.id})">Sil</button><button class="btn btn-s btn-sm" onclick="tSifre(${d.id},'${ad}')">🔑</button></td></tr>`);
+    ['tAd','tAta','tFin','tTel','tEmail','tIad'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('tSif').value='1234';document.getElementById('tErr').textContent='';
+  },'tErr');
+}
+function tAktiv(id,el){
+  const on=el.classList.contains('on');el.classList.toggle('on',!on);el.classList.toggle('off',on);
+  post('/api/admin/telebe_aktiv',{id,aktiv:!on,status:!on?'aktiv':'xaric'},()=>{});
+}
+function tSil(id){if(!confirm('Tələbə silinsin?'))return;post('/api/admin/telebe_sil',{id},()=>document.getElementById('tr2-'+id).remove());}
+function tSifre(id,ad){
+  const s=prompt(`"${ad}" — yeni şifrə:`, '1234');
+  if(!s)return;if(s.length<4){alert('Ən az 4 simvol!');return;}
+  post('/api/admin/telebe_sifre_sifirla',{id,yeni_sifre:s},()=>alert(`✓ Şifrə "${s}" olaraq dəyişdirildi.`));
+}
+function mSifre(id,ad){
+  const s=prompt('"'+ad+'" müəlliminin yeni şifrəsi:','1234');
+  if(!s||s.length<4){if(s!==null)alert('Ən az 4 simvol!');return;}
+  post('/api/admin/muellim_sifre',{id,sifre:s},()=>alert('✓ Şifrə dəyişdirildi: '+s));
+}
+function tStatus(id,status){
+  post('/api/admin/telebe_status',{id,status},()=>{});
+}
+function tAxtar(){
+  const q=document.getElementById('tSearch').value.toLowerCase();
+  const qf=document.getElementById('tQrupFilter').value;
+  const sf=document.getElementById('tStatusFilter').value;
+  document.querySelectorAll('#tTbody tr').forEach(r=>{
+    const ad=r.dataset.ad||'';
+    const show=(q===''||ad.includes(q))&&(qf===''||r.dataset.qrup===qf)&&(sf===''||r.dataset.status===sf);
+    r.style.display=show?'':'none';
+  });
+}
+</script>
+{% endblock %}

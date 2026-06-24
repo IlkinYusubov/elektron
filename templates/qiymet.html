@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Qiymətləndirmə{% endblock %}
+{% block head %}
+<style>
+.qinp{width:54px;padding:4px 5px;text-align:center;border:1.5px solid #dde2f0;border-radius:5px;font-size:13px}
+.qinp:focus{border-color:#3949ab;outline:none}
+.nov-tag{font-size:10px;color:#7986cb;font-weight:700;text-transform:uppercase;display:block;margin-bottom:1px}
+.nov-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.nov-tab{padding:5px 12px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid #dde2f0;background:#f8f9ff;color:#666;transition:.12s}
+.nov-tab.akt{background:#1a237e;color:#fff;border-color:#1a237e}
+</style>
+{% endblock %}
+{% block content %}
+<div class="kart">
+  <div class="kb">⭐ Qiymətləndirmə</div>
+  <form method="GET" class="frow">
+    <div class="fsah"><label class="lbl">Fənn</label>
+      <select name="ders_id" onchange="this.form.submit()">
+        <option value="">— Fənn seçin —</option>
+        {% for d in dersler %}<option value="{{ d.id }}" {% if d.id==ders_id %}selected{% endif %}>{{ d.ad }}</option>{% endfor %}
+      </select></div>
+    <div class="fsah"><label class="lbl">Qrup</label>
+      <select name="qrup_id" onchange="this.form.submit()">
+        <option value="">— Qrup seçin —</option>
+        {% for q in qruplar %}<option value="{{ q.id }}" {% if q.id==qrup_id %}selected{% endif %}>{{ q.ad }}</option>{% endfor %}
+      </select></div>
+  </form>
+
+  {% if ders_id and qrup_id %}
+  <div style="background:#f8f9ff;border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1.5px solid #e3e6f7">
+    <div style="font-size:13px;font-weight:700;color:#3949ab;margin-bottom:8px">+ Yeni qiymətləndirmə sütunu</div>
+    <div class="frow" style="margin:0">
+      <div class="fsah"><label class="lbl">Növ</label>
+        <select id="yNov">
+          <option>Şifahi</option><option>Yazılı</option><option>Praktiki</option>
+          <option>Laboratoriya</option><option>Sərbəst iş</option>
+        </select></div>
+      <div class="fsah" style="min-width:160px"><label class="lbl">Adı</label>
+        <input type="text" id="yAd" placeholder="Məs: Yazılı 1"></div>
+      <div style="align-self:flex-end"><button class="btn btn-p" onclick="sutunElave()">+ Əlavə et</button></div>
+      <span id="qErr" style="color:#c62828;font-size:13px;align-self:center"></span>
+    </div>
+  </div>
+
+  {% if novler %}
+  <!-- Növ filterləri -->
+  <div class="nov-tabs">
+    <button class="nov-tab akt" onclick="novFilter('all',this)">Hamısı</button>
+    {% for nov,_ in novler|groupby(0)|list %}
+    <button class="nov-tab" onclick="novFilter('{{ nov }}',this)">{{ nov }}</button>
+    {% endfor %}
+  </div>
+  <div style="font-size:12px;color:#888;margin-bottom:8px">💡 Bal daxil edin (0–100). Avtomatik saxlanır.</div>
+  <div class="tw"><table>
+    <thead><tr>
+      <th style="min-width:150px">Tələbə</th>
+      {% for nov,ad in novler %}
+      <th style="text-align:center;min-width:82px" data-nov="{{ nov }}">
+        <span class="nov-tag">{{ nov }}</span>{{ ad }}</th>
+      {% endfor %}
+      <th style="text-align:center;min-width:60px">Orta</th>
+    </tr></thead>
+    <tbody>
+    {% for t in telebe_list %}
+    <tr>
+      <td><b>{{ t.ad_soyad }}</b></td>
+      {% set cem=namespace(n=0,s=0) %}
+      {% for nov,ad in novler %}
+        {% set bal=qiymet_map.get((t.id,nov,ad)) %}
+        {% if bal is not none %}{% set cem.n=cem.n+bal %}{% set cem.s=cem.s+1 %}{% endif %}
+        <td style="text-align:center" data-nov="{{ nov }}">
+          <input class="qinp" type="number" min="0" max="100" step="1"
+            value="{{ bal|int if bal is not none else '' }}"
+            onchange="qSave({{ t.id }},'{{ nov }}','{{ ad }}',this.value)"
+            id="qi-{{ t.id }}-{{ loop.index }}">
+        </td>
+      {% endfor %}
+      <td style="text-align:center;font-weight:700" id="orta-{{ t.id }}">
+        {% if cem.s>0 %}{% set o=(cem.n/cem.s)|round|int %}
+        <span style="color:{% if o>=51 %}#2e7d32{% else %}#c62828{% endif %}">{{ o }}</span>
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<div style="color:#aaa;padding:16px 0;font-size:14px">Yuxarıdan sütun əlavə edin.</div>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const DID={{ ders_id or 'null' }},QID={{ qrup_id or 'null' }};
+const NOVLER={{ novler|tojson }};
+function qSave(tid,nov,ad,bal){
+  fetch('/api/qiymet',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({telebe_id:tid,ders_id:DID,nov,ad,bal:bal===''?null:parseFloat(bal)})})
+  .then(()=>refreshOrta(tid));
+}
+function refreshOrta(tid){
+  let s=0,c=0;
+  NOVLER.forEach(([nov,ad],i)=>{const inp=document.getElementById('qi-'+tid+'-'+(i+1));if(inp&&inp.value!==''){s+=parseFloat(inp.value);c++;}});
+  const el=document.getElementById('orta-'+tid);
+  if(!c){el.innerHTML='—';return;}
+  const o=Math.round(s/c);
+  el.innerHTML=`<span style="color:${o>=51?'#2e7d32':'#c62828'}">${o}</span>`;
+}
+function sutunElave(){
+  const nov=document.getElementById('yNov').value,ad=document.getElementById('yAd').value.trim();
+  const e=document.getElementById('qErr');
+  if(!ad){e.textContent='Ad daxil edin!';return;}
+  if(NOVLER.some(([n,a])=>n===nov&&a===ad)){e.textContent='Bu sütun artıq var!';return;}
+  fetch('/api/qiymet_sutun',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ders_id:DID,qrup_id:QID,nov,ad})}).then(()=>location.reload());
+}
+function novFilter(nov,btn){
+  document.querySelectorAll('.nov-tab').forEach(b=>b.classList.remove('akt'));
+  btn.classList.add('akt');
+  document.querySelectorAll('th[data-nov],td[data-nov]').forEach(el=>{
+    el.style.display=(nov==='all'||el.dataset.nov===nov)?'':'none';});
+}
+</script>
+{% endblock %}

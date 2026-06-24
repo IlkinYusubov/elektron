@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Profilim{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start">
+
+<!-- Sol panel -->
+<div>
+  <div class="kart" style="text-align:center;padding:28px 20px">
+    <div style="width:72px;height:72px;border-radius:50%;background:#eef0fb;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 12px">👨‍🏫</div>
+    <div style="font-size:18px;font-weight:700;color:#1a237e;margin-bottom:3px">{{ m.ad_soyad or m.ad }}</div>
+    <div style="font-size:13px;color:#888;margin-bottom:8px">@{{ m.ad }}</div>
+    <span class="bdg bdg-b">{{ m.rol }}</span>
+    {% if m.aktiv %}<span class="bdg bdg-y" style="margin-left:4px">Aktiv</span>
+    {% else %}<span class="bdg bdg-r" style="margin-left:4px">Passiv</span>{% endif %}
+  </div>
+
+  <div class="kart">
+    <div class="kb" style="font-size:14px">📊 Statistika</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:#eef0fb;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#5c6bc0;font-weight:700;margin-bottom:2px">Fənn sayı</div>
+        <div style="font-size:22px;font-weight:700;color:#1a237e">{{ dersler|length }}</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:2px">Keçilən dərs</div>
+        <div style="font-size:22px;font-weight:700;color:#2e7d32">{{ kecilen }}</div>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Fənn</th><th style="text-align:center">Status</th></tr></thead>
+      <tbody>
+      {% for d in dersler %}
+      <tr>
+        <td><b>{{ d.ad }}</b></td>
+        <td style="text-align:center">
+          <span class="bdg {% if d.aktiv %}bdg-y{% else %}bdg-r{% endif %}">
+            {% if d.aktiv %}Aktiv{% else %}Passiv{% endif %}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not dersler %}<tr><td colspan="2" style="color:#aaa;text-align:center">Fənn yoxdur</td></tr>{% endif %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Sağ panel -->
+<div>
+  {% if xeta %}<div class="alt alt-x">⚠ {{ xeta }}</div>{% endif %}
+  {% if ugur %}<div class="alt alt-ok">✓ {{ ugur }}</div>{% endif %}
+
+  <!-- Şəxsi məlumatlar -->
+  <div class="kart">
+    <div class="kb">✏️ Məlumatlarımı yenilə</div>
+    <form method="POST">
+      <input type="hidden" name="tur" value="meluat">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="lbl">Ad Soyad</label>
+          <input type="text" name="ad_soyad" value="{{ m.ad_soyad or '' }}" placeholder="Əliyev Əli Nəsirov">
+        </div>
+        <div>
+          <label class="lbl">Şöbə</label>
+          <input type="text" name="sobe" value="{{ m.sobe or '' }}" placeholder="Riyaziyyat şöbəsi">
+        </div>
+        <div>
+          <label class="lbl">Telefon</label>
+          <input type="tel" name="telefon" value="{{ m.telefon or '' }}" placeholder="+994 50 000 00 00">
+        </div>
+        <div>
+          <label class="lbl">E-poçt</label>
+          <input type="email" name="email" value="{{ m.email or '' }}" placeholder="mail@kollec.az">
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-p" type="submit">💾 Yadda saxla</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Şifrə dəyişmə -->
+  <div class="kart">
+    <div class="kb">🔒 Şifrə dəyişmə</div>
+    <form method="POST">
+      <input type="hidden" name="tur" value="sifre">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div>
+          <label class="lbl">Köhnə şifrə</label>
+          <input type="password" name="kohne" required placeholder="Mövcud şifrə">
+        </div>
+        <div>
+          <label class="lbl">Yeni şifrə</label>
+          <input type="password" name="yeni" id="yn" required placeholder="Ən az 4 simvol">
+        </div>
+        <div>
+          <label class="lbl">Yeni şifrəni təkrarla</label>
+          <input type="password" name="yeni2" id="yn2" oninput="chk()" placeholder="Eyni şifrə">
+          <div id="cm" style="font-size:12px;margin-top:3px"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-p" type="submit">🔒 Şifrəni dəyiş</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function chk(){
+  const a=document.getElementById('yn').value, b=document.getElementById('yn2').value;
+  const el=document.getElementById('cm');
+  if(!b){el.textContent='';return;}
+  el.textContent = a===b ? '✓ Uyğundur' : '✗ Uyğun deyil';
+  el.style.color = a===b ? '#2e7d32' : '#c62828';
+}
+</script>
+{% endblock %}
